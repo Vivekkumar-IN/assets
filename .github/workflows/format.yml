@@ -5,6 +5,7 @@ on:
     inputs:
       language:
         description: 'Which language to format (python, go)'
+        type: string
         required: false
         default: 'python'
 
