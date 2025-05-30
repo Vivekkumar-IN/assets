@@ -1,7 +1,6 @@
 name: format codes
 
 on:
-  push:
   workflow_call:
 
 jobs:
@@ -17,19 +16,19 @@ jobs:
 
       - name: Install Formatting Tools
         run: |
-             pip install --upgrade pip
-             pip install autoflake isort black pyupgrade
+          pip install --upgrade pip
+          pip install autoflake isort black pyupgrade
 
-      - name: format codes
+      - name: Format codes
         run: |
           autoflake -i -r --ignore-init-module-imports --remove-unused-variables --remove-duplicate-keys --remove-all-unused-imports .
           black -t py310 .
           isort -n --py 310 -m 3 --trailing-comma .
 
-
       - name: Update Syntax to python3.10+
         run: |
           find . -name "*.py" -exec pyupgrade --py310-plus {} \;
+
       - name: Ruff
         uses: astral-sh/ruff-action@v3
         with:
