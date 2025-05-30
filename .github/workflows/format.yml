@@ -2,37 +2,67 @@ name: format codes
 
 on:
   workflow_call:
+    inputs:
+      language:
+        description: 'Which language to format (python, go)'
+        required: false
+        default: 'python'
 
 jobs:
-  format:
+  format_code:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Python Environment
+        if: ${{ inputs.language == 'python' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.10.x"
 
-      - name: Install Formatting Tools
+      - name: Install Python Formatting Tools
+        if: ${{ inputs.language == 'python' }}
         run: |
           pip install --upgrade pip
           pip install autoflake isort black pyupgrade
 
-      - name: Format codes
+      - name: Format Python Codes
+        if: ${{ inputs.language == 'python' }}
         run: |
           autoflake -i -r --ignore-init-module-imports --remove-unused-variables --remove-duplicate-keys --remove-all-unused-imports .
           black -t py310 .
           isort -n --py 310 -m 3 --trailing-comma .
-
-      - name: Update Syntax to python3.10+
-        run: |
           find . -name "*.py" -exec pyupgrade --py310-plus {} \;
 
       - name: Ruff
+        if: ${{ inputs.language == 'python' }}
         uses: astral-sh/ruff-action@v3
         with:
           args: "format"
+
+      - name: Setup Go Environment
+        if: ${{ inputs.language == 'go' || inputs.language == 'golang' }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Install Go Formatting Tools
+        if: ${{ inputs.language == 'go' || inputs.language == 'golang' }}
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install mvdan.cc/gofumpt@latest
+          go install github.com/segmentio/golines@latest
+          go install github.com/daixiang0/gci@latest
+
+      - name: Format Go Codes
+        if: ${{ inputs.language == 'go' || inputs.language == 'golang' }}
+        run: |
+          go mod tidy
+          gofmt -w .
+          goimports -w .
+          gci write . -s standard -s default -s "prefix(main)"
+          gofumpt -w -extra .
+          golines --max-len=80 .
 
       - name: Commit Changes
         uses: stefanzweifel/git-auto-commit-action@v5
