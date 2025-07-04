@@ -60,6 +60,7 @@ jobs:
           gci write . -s standard -s default -s "prefix(main)"
           gofumpt -w -extra .
           golines --max-len=80 .
+          go mod tidy
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style: format codes"
